@@ -131,7 +131,6 @@ const Room = ({}) => {
   return (
   <>
   <Head>
-    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
     <title>Room {roomID}</title>
   </Head>
   <div className='flex flex-wrap justify-center max-w-4xl m-auto bg-gradient-to-tr from-teal-300 to-lime-200 rounded-md text-cyan-500'>

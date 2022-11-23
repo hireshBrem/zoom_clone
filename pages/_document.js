@@ -5,6 +5,7 @@ export default function Document() {
     <Html>
       <Head>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins" />
+        <NextScript src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></NextScript>
       </Head>
       <body>
         <Main />
