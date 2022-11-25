@@ -1,11 +1,12 @@
 import { Html, Head, Main, NextScript } from 'next/document'
+import Script from 'next/script'
 
 export default function Document() {
   return (
     <Html>
       <Head>
+        <Script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins" />
-        <NextScript src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></NextScript>
       </Head>
       <body>
         <Main />

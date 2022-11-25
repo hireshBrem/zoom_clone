@@ -1,33 +1,41 @@
 import Head from 'next/head'
+import Script from 'next/script'
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router'
 import {io} from 'socket.io-client'
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome"
+import {faMicrophone, faMicrophoneSlash, faCamera, faVideoCamera} from '@fortawesome/free-solid-svg-icons'
 
 let socket
 let peer
 
-const Room = ({}) => {
-
+const Room = ({}) => {  
   const router = useRouter()
   const { roomID } = router.query
   const[audio, setAudioDevices] = useState([])
   const[videos, setVideos] = useState([])
 
+  const[btnDisable, setBtnDisable] = useState(false)
+  let audioIcon
+  const[userAudio, setAudio] = useState(false)
+  const[userVideo, setVideo] = useState(true)
   const[myId, setMyId] = useState("")
   const[peerId, setPeerId] = useState("")
-  const[mediaStream, setMediaStream] = useState("")
+  const[mediaStream, setMediaStream] = useState([])
 
   useEffect(()=>{
-    connectionInitializer()
+    import('peerjs').then(({ default: Peer }) => {
+      connectionInitializer(Peer)
+    });
   }, [])
 
-  const connectionInitializer = async () => {
+  const connectionInitializer = async (Peer) => {
     await fetch("/api/socket", {
       method:"GET"
     })
 
     socket = io()
-
+    peer = new Peer()
     socket.on("connect", ()=>{
       socket.emit("join-room", roomID)
       console.log("Connected!")
@@ -40,8 +48,6 @@ const Room = ({}) => {
     socket.on("disconnect", ()=>{
       
     })
-
-    peer = new Peer();
 
     peer.on('open', function(id) {
       setMyId(id)
@@ -56,12 +62,15 @@ const Room = ({}) => {
     peer.on('call', function(call) {
       let getUserMedia2 = navigator.mediaDevices.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
       console.log("peer receiving call...")
-      getUserMedia2({video: true}).then((stream) => {
+      getUserMedia2({video: userVideo, audio:userAudio}).then((stream) => {
         call.answer(stream)
+
+        document.getElementById("vid1").srcObject = stream
         call.on("stream", (remoteStream)=>{
           console.log("Stream event")
-          document.getElementById("vid1").srcObject = remoteStream
-          document.getElementById("vid2").srcObject = stream
+          // document.getElementById("vid1").srcObject = remoteStream
+          document.getElementById("vid2").srcObject = remoteStream
+          setBtnDisable(true)
         })
 
       }).catch(err => console.log(err))
@@ -95,47 +104,51 @@ const Room = ({}) => {
     });    
   }, [])
 
-  async function handleClick(peer){
-    var getUserMedia1 = navigator.mediaDevices.getUserMedia || navigator.mediaDevices.webkitGetUserMedia || navigator.mediaDevices.mozGetUserMedia;
+  async function handleClick(){
+    let getUserMedia1 = navigator.mediaDevices.getUserMedia || navigator.mediaDevices.webkitGetUserMedia || navigator.mediaDevices.mozGetUserMedia;
+    
+    // await getUserMedia1({video:true, audio:true}).then((stream) => {
+    //   document.getElementById("vid1").srcObject = stream  
+    // })
 
-    getUserMedia1({video:true}).then((stream) => {
-      if(peerId!=""){
+    await getUserMedia1({video:userVideo, audio:userAudio}).then((stream) => {
+      if(peerId!=[]){
         console.log("calling")
         let call =  peer.call(peerId, stream)
-
         document.getElementById("vid1").srcObject = stream
         
         call.on("stream", (remoteStream) => {
           console.log("Streaming")
-          document.getElementById("vid1").srcObject = stream
+
           document.getElementById("vid2").srcObject = remoteStream
+          
         })
       }     
     })
 
-    // var getUserMedia1 = navigator.mediaDevices.getUserMedia || navigator.mediaDevices.webkitGetUserMedia || navigator.mediaDevices.mozGetUserMedia;
+  }
+  
+  function handleVideo() {
+    
+  }
 
-    // await navigator.mediaDevices.getUserMedia({video:true}, stream=>console.log(stream))
-    // await getUserMedia1({
-    //   video: true,
-    //   audio: true,
-    //   video: {
-    //     width: "600px"
-    //   }
-    // }).then((stream) => {document.getElementById("vid1").srcObject = stream})
-    // .catch(err=>console.log(err))
-
+  function handleAudio() {
+    if(userAudio===true){
+      setAudio(false)
+    }else{
+      setAudio(true)
+    }
   }
 
   
   return (
   <>
   <Head>
-    <title>Room {roomID}</title>
+    <title>{roomID}</title>
   </Head>
-  <div className='flex flex-wrap justify-center max-w-4xl m-auto bg-gradient-to-tr from-teal-300 to-lime-200 rounded-md text-cyan-500'>
-      <h1 className='text-[30px] block'><u>Room:</u> <i>{roomID}</i></h1>
-      <div className=''>
+  <div className='flex flex-wrap justify-center max-w-4xl m-auto bg-gradient-to-tr font-poppins from-teal-300 to-lime-200 rounded-md'>
+      <h1 className='text-[30px] block underline my-5 text-purple-400'>Welcome to the room!</h1>
+      <div className='flex flex-wrap justify-center'>
         {
           // videos.map((userVid, index)=>
           // {
@@ -148,25 +161,19 @@ const Room = ({}) => {
           //   )
           // })
         }
-        <video id="vid1" autoPlay className='rounded-md block'></video>
-        <video id="vid2" autoPlay className='rounded-md block'></video>
 
+        <video id="vid1" autoPlay className='border-4 border-purple-400 rounded-md block w-80 m-5'></video>
+        <video id="vid2" autoPlay className='border-4 border-purple-400 rounded-md block w-80 m-5'></video>
       </div>
-      <button className='mx-10' onClick={()=>log()}>Debug</button>
-      <button onClick={()=>handleClick(peer)}>Click</button>
+      <div className='flex flex-wrap justify-center mb-44'>
+        <button disabled={btnDisable} className='p-2 m-4 bg-purple-400 rounded-md text-white' onClick={()=>handleClick()}>Join Call</button>
+        <button onClick={()=>handleVideo()} className='p-2 m-4 bg-purple-400 rounded-md text-white'><FontAwesomeIcon className='w-5' icon={faVideoCamera}></FontAwesomeIcon></button>
+        <button onClick={()=>handleAudio()} className='p-2 m-4 bg-purple-400 rounded-md text-white '><FontAwesomeIcon width={"30px"} className='' icon={userAudio===true?(faMicrophone):(faMicrophoneSlash)}></FontAwesomeIcon></button>
+      </div>
   </div>
+  <button className='mx-10' onClick={()=>log()}>Debug</button>
+      
   </>
 )}
 
-export async function getServerSideProps(context) {
-  
-  // const configuration = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]}
-  // const pc = await new RTCPeerConnection(configuration)
-  
-  return {
-    props: {
-      peerConnection: null
-    }, 
-  }
-}
 export default Room
