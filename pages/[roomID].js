@@ -65,10 +65,9 @@ const Room = ({}) => {
       getUserMedia2({video: userVideo, audio:userAudio}).then((stream) => {
         call.answer(stream)
 
-        document.getElementById("vid1").srcObject = stream
         call.on("stream", (remoteStream)=>{
           console.log("Stream event")
-          // document.getElementById("vid1").srcObject = remoteStream
+          document.getElementById("vid1").srcObject = stream
           document.getElementById("vid2").srcObject = remoteStream
           setBtnDisable(true)
         })
@@ -107,18 +106,19 @@ const Room = ({}) => {
   async function handleClick(){
     let getUserMedia1 = navigator.mediaDevices.getUserMedia || navigator.mediaDevices.webkitGetUserMedia || navigator.mediaDevices.mozGetUserMedia;
     
-    // await getUserMedia1({video:true, audio:true}).then((stream) => {
-    //   document.getElementById("vid1").srcObject = stream  
-    // })
+    await getUserMedia1({video:true, audio:true}).then((stream) => {
+      document.getElementById("vid1").srcObject = stream  
+    })
 
     await getUserMedia1({video:userVideo, audio:userAudio}).then((stream) => {
-      if(peerId!=[]){
+      if(peerId!=""){
         console.log("calling")
         let call =  peer.call(peerId, stream)
-        document.getElementById("vid1").srcObject = stream
+        // document.getElementById("vid1").srcObject = stream
         
         call.on("stream", (remoteStream) => {
           console.log("Streaming")
+          // document.getElementById("vid1").srcObject = stream
 
           document.getElementById("vid2").srcObject = remoteStream
           
