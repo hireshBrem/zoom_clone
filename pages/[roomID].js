@@ -9,6 +9,8 @@ import {faMicrophone, faMicrophoneSlash, faCamera, faVideoCamera} from '@fortawe
 let socket
 let peer
 
+//Test logic of code!!!
+
 const Room = ({}) => {  
   const router = useRouter()
   const { roomID } = router.query
@@ -16,7 +18,6 @@ const Room = ({}) => {
   const[videos, setVideos] = useState([])
 
   const[btnDisable, setBtnDisable] = useState(false)
-  let audioIcon
   const[userAudio, setAudio] = useState(false)
   const[userVideo, setVideo] = useState(true)
   const[myId, setMyId] = useState("")
@@ -64,10 +65,10 @@ const Room = ({}) => {
       console.log("peer receiving call...")
       getUserMedia2({video: userVideo, audio:userAudio}).then((stream) => {
         call.answer(stream)
+        document.getElementById("vid1").srcObject = stream
 
         call.on("stream", (remoteStream)=>{
           console.log("Stream event")
-          document.getElementById("vid1").srcObject = stream
           document.getElementById("vid2").srcObject = remoteStream
           setBtnDisable(true)
         })
